@@ -37,7 +37,23 @@ function loadLocalCustom() {
   }
 }
 
+function extractMrpFromDesc(desc) {
+  const match = String(desc || "").match(/^\[MRP:\s*([^\]]+)\]\s*\n?/i);
+  return match ? match[1].trim() : "";
+}
+
+function stripMrpFromDesc(desc) {
+  return String(desc || "").replace(/^\[MRP:\s*([^\]]+)\]\s*\n?/i, "").trim();
+}
+
+function formatMrpLabel(mrp) {
+  const clean = String(mrp || "").trim();
+  if (!clean) return "";
+  return clean.startsWith("₹") ? `MRP: ${clean}` : `MRP: ₹${clean}`;
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
+  ensureMrpInputExists();
   applyCustomizationUI();
   setupSecretAdminTrigger();
   await initCatalog();
@@ -46,6 +62,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     showAdminPanelUI();
   }
 });
+
+function ensureMrpInputExists() {
+  if (document.getElementById("prodMrp")) return;
+  const catEl = document.getElementById("prodCategory");
+  if (!catEl || !catEl.parentElement) return;
+  const wrap = document.createElement("div");
+  wrap.className = "form-group";
+  wrap.innerHTML = `
+    <label for="prodMrp">MRP (Price)</label>
+    <input id="prodMrp" type="text" placeholder="e.g. 999 or ₹999" />
+  `;
+  catEl.parentElement.insertAdjacentElement("afterend", wrap);
+}
 
 function toggleThemeMode() {
   const isLight = document.body.classList.contains("light-theme");
@@ -246,6 +275,7 @@ async function verifyAdminLogin() {
 }
 
 function showAdminPanelUI() {
+  ensureMrpInputExists();
   document.getElementById("adminPanel").style.display = "block";
   document.getElementById("exitAdminBtn").style.display = "inline-flex";
   populateAdminForms();
@@ -370,6 +400,8 @@ function renderProducts() {
     const productUrl = `product.html?id=${encodeURIComponent(item.id)}`;
     const isOut = item.stockStatus === "out_of_stock" || Number(item.stockQty) <= 0;
     const qtyText = isOut ? "Out of Stock" : `In Stock (${Number(item.stockQty ?? 10)})`;
+    const mrpVal = extractMrpFromDesc(item.description);
+    const cleanDesc = stripMrpFromDesc(item.description);
 
     return `
       <article class="card" data-prod-id="${escapeHtml(item.id)}" data-admin="${isAdmin ? "1" : "0"}">
@@ -380,8 +412,9 @@ function renderProducts() {
         </div>
         <div class="card-body">
           ${storeCustom.show_stock ? `<div class="stock-tag ${isOut ? "stock-out" : "stock-in"}">${escapeHtml(qtyText)}</div>` : ""}
+          ${mrpVal ? `<div style="font-size: 0.82rem; font-weight: 700;">${escapeHtml(formatMrpLabel(mrpVal))}</div>` : ""}
           <div class="card-title" onclick="location.href='${productUrl}'">${escapeHtml(item.title)}</div>
-          <div class="card-desc">${escapeHtml(item.description)}</div>
+          <div class="card-desc">${escapeHtml(cleanDesc)}</div>
           <div class="card-footer">
             <a href="${productUrl}" class="btn btn-sm btn-white">View Details</a>
             <span class="card-date">${escapeHtml(item.date || "")}</span>
@@ -620,14 +653,16 @@ function startEditProduct(id) {
   const prod = allProducts.find((p) => p.id === id);
   if (!prod) return;
 
+  ensureMrpInputExists();
   switchAdminTab("tabProducts", document.querySelector('.tab-btn[data-tab="tabProducts"]'));
   document.getElementById("editProdId").value = prod.id;
   document.getElementById("prodFormHeading").textContent = "Edit Product";
   document.getElementById("prodTitle").value = prod.title;
   document.getElementById("prodCategory").value = prod.category || "General";
+  document.getElementById("prodMrp").value = extractMrpFromDesc(prod.description);
   document.getElementById("prodStockStatus").value = prod.stockStatus || "in_stock";
   document.getElementById("prodStockQty").value = Number(prod.stockQty ?? 10);
-  document.getElementById("prodDesc").value = prod.description;
+  document.getElementById("prodDesc").value = stripMrpFromDesc(prod.description);
   document.getElementById("cancelEditBtn").style.display = "inline-flex";
   selectedImagesBase64 = [];
   selectedImageHashes = [];
@@ -646,6 +681,7 @@ function resetProductForm() {
   document.getElementById("editProdId").value = "";
   document.getElementById("prodFormHeading").textContent = "Add New Product";
   document.getElementById("prodTitle").value = "";
+  if (document.getElementById("prodMrp")) document.getElementById("prodMrp").value = "";
   document.getElementById("prodStockStatus").value = "in_stock";
   document.getElementById("prodStockQty").value = "10";
   document.getElementById("prodDesc").value = "";
@@ -661,12 +697,14 @@ async function saveProduct() {
   const editId = document.getElementById("editProdId").value.trim();
   const title = document.getElementById("prodTitle").value.trim();
   const category = document.getElementById("prodCategory").value;
+  const mrpInputEl = document.getElementById("prodMrp");
+  const rawMrp = mrpInputEl ? mrpInputEl.value.trim() : "";
   const stockStatus = document.getElementById("prodStockStatus").value;
   const stockQty = Math.max(0, Number(document.getElementById("prodStockQty").value) || 0);
-  const description = document.getElementById("prodDesc").value.trim();
+  const rawDesc = document.getElementById("prodDesc").value.trim();
   const btn = document.getElementById("saveProdBtn");
 
-  if (!title || !description) {
+  if (!title || !rawDesc) {
     showToast("Title and description required");
     return;
   }
@@ -682,6 +720,8 @@ async function saveProduct() {
     return;
   }
 
+  const cleanDesc = stripMrpFromDesc(rawDesc);
+  const finalDescription = rawMrp ? `[MRP: ${rawMrp}]\n${cleanDesc}` : cleanDesc;
   const suggestedIds = Array.from(document.querySelectorAll(".sugg-checkbox:checked")).map((cb) => cb.value);
 
   btn.disabled = true;
@@ -696,7 +736,7 @@ async function saveProduct() {
       category,
       stockStatus,
       stockQty,
-      description,
+      description: finalDescription,
       images: selectedImagesBase64,
       suggestedIds
     };
