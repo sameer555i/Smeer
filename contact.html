@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -14,9 +14,12 @@
         <span></span>
         <span></span>
       </button>
-      <div class="brand js-store-name">Store</div>
+      <div class="brand-wrap">
+        <img id="topLogoImg" class="brand-logo-img" alt="Logo" />
+        <div class="brand js-store-name">Sameer Store</div>
+      </div>
     </div>
-    <a href="index.html" class="btn btn-sm">Catalog</a>
+    <a href="index.html" class="btn btn-sm btn-white">Catalog</a>
   </header>
 
   <div id="drawerBackdrop" class="drawer-backdrop"></div>
@@ -36,7 +39,10 @@
     </section>
   </main>
 
-  <div id="toast" class="status-toast"></div>
+  <div id="toast" class="status-toast">
+    <span id="toastText"></span>
+    <button id="toastUndoBtn" class="btn btn-sm btn-white" style="display: none;">Undo</button>
+  </div>
 
   <script src="config.js"></script>
   <script src="api.js"></script>
@@ -46,9 +52,9 @@
         const data = await StoreAPI.fetchAll(false);
         if (data.status === "success") {
           const s = data.settings || {};
-          document.title = `Contact Us - ${s.store_name || "Store"}`;
+          document.title = `Contact Us - ${s.store_name || "Sameer Store"}`;
           setupNavigation(s.store_name);
-          document.getElementById("contactContent").textContent = s.contact_us || "संपर्क विवरण जल्द ही अपडेट होगा।";
+          document.getElementById("contactContent").textContent = s.contact_us || "Contact details will be updated soon.";
 
           const actions = document.getElementById("contactActions");
           const waNum = String(s.whatsapp_number || "").replace(/\D/g, "");
@@ -56,11 +62,11 @@
             actions.innerHTML += `<a href="https://wa.me/${waNum}" target="_blank" rel="noopener noreferrer" class="btn btn-whatsapp">Chat on WhatsApp</a>`;
           }
           if (s.contact_email) {
-            actions.innerHTML += `<a href="mailto:${escapeHtml(s.contact_email)}" class="btn btn-primary">Email Us</a>`;
+            actions.innerHTML += `<a href="mailto:${escapeHtml(s.contact_email)}" class="btn btn-white">Email Us</a>`;
           }
         }
       } catch (e) {
-        document.getElementById("contactContent").textContent = "जानकारी लोड नहीं हो सकी।";
+        document.getElementById("contactContent").textContent = "Unable to load details.";
       }
     });
   </script>
