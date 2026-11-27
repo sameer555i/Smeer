@@ -1,3 +1,18 @@
+function extractMrpFromDesc(desc) {
+  const match = String(desc || "").match(/^\[MRP:\s*([^\]]+)\]\s*\n?/i);
+  return match ? match[1].trim() : "";
+}
+
+function stripMrpFromDesc(desc) {
+  return String(desc || "").replace(/^\[MRP:\s*([^\]]+)\]\s*\n?/i, "").trim();
+}
+
+function formatMrpLabel(mrp) {
+  const clean = String(mrp || "").trim();
+  if (!clean) return "";
+  return clean.startsWith("₹") ? `MRP: ${clean}` : `MRP: ₹${clean}`;
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   try {
     const custom = JSON.parse(localStorage.getItem("sameer_custom_ui") || "{}");
@@ -47,11 +62,15 @@ function renderProductDetail(product, settings) {
   const imgs = product.images && product.images.length ? product.images : [];
   const isOut = product.stockStatus === "out_of_stock" || Number(product.stockQty) <= 0;
   const stockLabel = isOut ? "Out of Stock" : `In Stock (${Number(product.stockQty ?? 10)} available)`;
+  const prodMrp = extractMrpFromDesc(product.description);
+  const prodCleanDesc = stripMrpFromDesc(product.description);
+  const mrpFormatted = formatMrpLabel(prodMrp);
 
   const waNumber = String(settings.whatsapp_number || "917676729300").replace(/\D/g, "");
   const messageText =
     `Hello, I want to inquire about this product:\n\n` +
     `Product: ${product.title}\n` +
+    (mrpFormatted ? `${mrpFormatted}\n` : "") +
     `Category: ${product.category || "General"}\n` +
     `Stock: ${stockLabel}\n` +
     `Link: ${window.location.href}`;
@@ -82,8 +101,9 @@ function renderProductDetail(product, settings) {
         <span class="chip" style="margin-top: 0;">${escapeHtml(product.category || "General")}</span>
         <span class="stock-tag ${isOut ? "stock-out" : "stock-in"}">${escapeHtml(stockLabel)}</span>
       </div>
-      <h1 style="font-size: 1.25rem; line-height: 1.35; margin-bottom: 10px;">${escapeHtml(product.title)}</h1>
-      <p style="color: var(--text-muted); font-size: 0.94rem; line-height: 1.6; white-space: pre-line;">${escapeHtml(product.description)}</p>
+      <h1 style="font-size: 1.25rem; line-height: 1.35; margin-bottom: 8px;">${escapeHtml(product.title)}</h1>
+      ${mrpFormatted ? `<div style="font-size: 1.05rem; font-weight: 700; margin-bottom: 10px;">${escapeHtml(mrpFormatted)}</div>` : ""}
+      <p style="color: var(--text-muted); font-size: 0.94rem; line-height: 1.6; white-space: pre-line;">${escapeHtml(prodCleanDesc)}</p>
     </div>
   `;
 
@@ -120,6 +140,8 @@ function renderSuggestedProducts(currentProduct, allProducts) {
   grid.innerHTML = suggestedItems.map((item) => {
     const firstImg = item.images && item.images[0] ? item.images[0] : "";
     const url = `product.html?id=${encodeURIComponent(item.id)}`;
+    const mrpVal = extractMrpFromDesc(item.description);
+    const cleanDesc = stripMrpFromDesc(item.description);
     return `
       <article class="card">
         <div class="card-img-wrap" onclick="location.href='${url}'">
@@ -127,8 +149,9 @@ function renderSuggestedProducts(currentProduct, allProducts) {
           <span class="badge-top">${escapeHtml(item.category || "General")}</span>
         </div>
         <div class="card-body">
+          ${mrpVal ? `<div style="font-size: 0.8rem; font-weight: 700;">${escapeHtml(formatMrpLabel(mrpVal))}</div>` : ""}
           <div class="card-title" onclick="location.href='${url}'">${escapeHtml(item.title)}</div>
-          <div class="card-desc">${escapeHtml(item.description)}</div>
+          <div class="card-desc">${escapeHtml(cleanDesc)}</div>
           <div class="card-footer">
             <a href="${url}" class="btn btn-sm btn-white">View</a>
           </div>
