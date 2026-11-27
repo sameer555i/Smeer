@@ -19,11 +19,12 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          api-level: '34'
-          build-tools-version: '34.0.0'
+      - name: Install Android SDK 34 & Build Tools
+        run: |
+          SDK_ROOT="${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}"
+          mkdir -p "$SDK_ROOT"
+          yes | sdkmanager --sdk_root="$SDK_ROOT" --licenses >/dev/null 2>&1 || true
+          sdkmanager --sdk_root="$SDK_ROOT" "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v3
@@ -32,7 +33,6 @@ jobs:
         run: |
           mkdir -p android-app/app/src/main/java/com/sameer/store
           mkdir -p android-app/app/src/main/res/drawable
-          mkdir -p android-app/app/src/main/res/values
           mkdir -p android-app/gradle/wrapper
 
           cat << 'EOF' > android-app/settings.gradle
