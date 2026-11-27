@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Product Catalog</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-left">
+      <button id="menuBtn" class="hamburger-btn" aria-label="Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <div id="brandTitle" class="brand js-store-name" title="Tap 5 times for admin">Store</div>
+    </div>
+    <button id="exitAdminBtn" class="btn btn-sm" style="display: none;" onclick="logoutAdmin()">Exit Admin</button>
+  </header>
+
+  <div id="drawerBackdrop" class="drawer-backdrop"></div>
+  <nav id="sideDrawer" class="side-drawer">
+    <div class="drawer-title js-store-name">Menu</div>
+    <a href="index.html" class="nav-link active">Catalog</a>
+    <a href="about.html" class="nav-link">About Us</a>
+    <a href="contact.html" class="nav-link">Contact Us</a>
+  </nav>
+
+  <main class="container">
+    <!-- Admin Panel -->
+    <section id="adminPanel" class="glass-box" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <h2 style="font-size: 1.12rem;">Admin Dashboard</h2>
+      </div>
+
+      <div class="admin-tabs">
+        <button class="tab-btn active" data-tab="tabProducts" onclick="switchAdminTab('tabProducts', this)">Products</button>
+        <button class="tab-btn" data-tab="tabCategories" onclick="switchAdminTab('tabCategories', this)">Categories</button>
+        <button class="tab-btn" data-tab="tabSettings" onclick="switchAdminTab('tabSettings', this)">Site Settings</button>
+        <button class="tab-btn" data-tab="tabPassword" onclick="switchAdminTab('tabPassword', this)">Password</button>
+      </div>
+
+      <!-- Tab 1: Add / Edit Products -->
+      <div id="tabProducts" class="admin-section active">
+        <h3 id="prodFormHeading" style="font-size: 1rem; margin-bottom: 12px;">Add New Product</h3>
+        <input id="editProdId" type="hidden" />
+
+        <div class="form-group">
+          <label for="prodTitle">Product Title</label>
+          <input id="prodTitle" type="text" placeholder="Enter product title" />
+        </div>
+
+        <div class="form-group">
+          <label for="prodCategory">Category</label>
+          <select id="prodCategory">
+            <option value="General">General</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="prodDesc">Description</label>
+          <textarea id="prodDesc" placeholder="Write full product description..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="prodImages">Photos (Up to 4 photos)</label>
+          <input id="prodImages" type="file" accept="image/*" multiple onchange="handleImagePreview(event)" />
+          <div id="previewStrip" class="preview-strip"></div>
+        </div>
+
+        <div class="form-group">
+          <label>Suggested Products (इस प्रोडक्ट के नीचे कौन-कौन से प्रोडक्ट दिखें?)</label>
+          <div id="suggestedList" class="suggestion-checklist"></div>
+        </div>
+
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button id="saveProdBtn" class="btn btn-primary" onclick="saveProduct()">Save Product</button>
+          <button id="cancelEditBtn" class="btn" style="display: none;" onclick="resetProductForm()">Cancel Edit</button>
+        </div>
+      </div>
+
+      <!-- Tab 2: Manage Categories -->
+      <div id="tabCategories" class="admin-section">
+        <div class="form-group">
+          <label for="newCategoryInput">New Category Name</label>
+          <div style="display: flex; gap: 10px;">
+            <input id="newCategoryInput" type="text" placeholder="e.g. Skincare, Electronics" />
+            <button class="btn btn-primary" onclick="addCategory()">Add</button>
+          </div>
+        </div>
+        <div id="categoryChips" class="chip-list"></div>
+      </div>
+
+      <!-- Tab 3: Site Settings (About, Contact, WhatsApp, Email, Store Name) -->
+      <div id="tabSettings" class="admin-section">
+        <div class="form-group">
+          <label for="setStoreName">Store / Catalog Name</label>
+          <input id="setStoreName" type="text" />
+        </div>
+        <div class="form-group">
+          <label for="setWhatsapp">WhatsApp Number (with country code, e.g. 917676729300)</label>
+          <input id="setWhatsapp" type="text" />
+        </div>
+        <div class="form-group">
+          <label for="setEmail">Contact Email</label>
+          <input id="setEmail" type="email" />
+        </div>
+        <div class="form-group">
+          <label for="setAbout">About Us Content</label>
+          <textarea id="setAbout"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="setContact">Contact Us Content</label>
+          <textarea id="setContact"></textarea>
+        </div>
+        <button id="saveSettingsBtn" class="btn btn-primary" onclick="saveSiteSettings()">Save Settings</button>
+      </div>
+
+      <!-- Tab 4: Change Password -->
+      <div id="tabPassword" class="admin-section">
+        <div class="form-group">
+          <label for="oldPassInput">Current Password</label>
+          <input id="oldPassInput" type="password" placeholder="Enter current password" />
+        </div>
+        <div class="form-group">
+          <label for="newPassInput">New Password</label>
+          <input id="newPassInput" type="password" placeholder="Enter new password (min 4 chars)" />
+        </div>
+        <button id="changePassBtn" class="btn btn-primary" onclick="changeAdminPassword()">Update Password</button>
+      </div>
+    </section>
+
+    <!-- Category Filter Bar -->
+    <div id="categoryBar" class="category-bar"></div>
+
+    <!-- Products Grid -->
+    <div id="productsGrid" class="grid"></div>
+  </main>
+
+  <!-- Password Modal -->
+  <div id="authModal" class="modal-backdrop">
+    <div class="modal-box">
+      <h3 style="margin-bottom: 12px;">Admin Login</h3>
+      <div class="form-group">
+        <label for="adminPassInput">Password</label>
+        <input id="adminPassInput" type="password" placeholder="Enter password" />
+      </div>
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button class="btn" onclick="closeAuthModal()">Cancel</button>
+        <button id="unlockBtn" class="btn btn-primary" onclick="verifyAdminLogin()">Unlock</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="status-toast"></div>
+
+  <script src="config.js"></script>
+  <script src="api.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
