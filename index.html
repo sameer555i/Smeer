@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sameer Store</title>
+  <title>K-TECH</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -16,22 +16,26 @@
       </button>
       <div id="brandTrigger" class="brand-wrap" title="Tap 5 times for admin">
         <img id="topLogoImg" class="brand-logo-img" alt="Logo" />
-        <div id="brandTitle" class="brand js-store-name">Sameer Store</div>
+        <div id="brandTitle" class="brand js-store-name">K-TECH</div>
       </div>
     </div>
-    <button id="exitAdminBtn" class="btn btn-sm btn-white" style="display: none;" onclick="logoutAdmin()">Exit Admin</button>
+    <div class="topbar-right">
+      <button id="themeToggleBtn" class="btn btn-sm btn-white" onclick="toggleThemeMode()">Light</button>
+      <button id="exitAdminBtn" class="btn btn-sm btn-white" style="display: none;" onclick="logoutAdmin()">Exit Admin</button>
+    </div>
   </header>
 
   <div id="drawerBackdrop" class="drawer-backdrop"></div>
   <nav id="sideDrawer" class="side-drawer">
     <div class="drawer-title js-store-name">Menu</div>
     <a href="index.html" class="nav-link active">Catalog</a>
+    <div class="drawer-section-label">Categories</div>
+    <div id="drawerCategoryList" class="drawer-cat-list"></div>
     <a href="about.html" class="nav-link">About Us</a>
     <a href="contact.html" class="nav-link">Contact Us</a>
   </nav>
 
   <main class="container">
-    <!-- Admin Panel -->
     <section id="adminPanel" class="glass-box" style="display: none;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
         <h2 style="font-size: 1.1rem;">Admin Dashboard</h2>
@@ -45,7 +49,6 @@
         <button class="tab-btn" data-tab="tabPassword" onclick="switchAdminTab('tabPassword', this)">Password</button>
       </div>
 
-      <!-- Tab 1: Products -->
       <div id="tabProducts" class="admin-section active">
         <h3 id="prodFormHeading" style="font-size: 1rem; margin-bottom: 12px;">Add New Product</h3>
         <input id="editProdId" type="hidden" />
@@ -60,6 +63,16 @@
           <select id="prodCategory">
             <option value="General">General</option>
           </select>
+        </div>
+
+        <div class="form-group">
+          <label for="prodMrp">MRP</label>
+          <input id="prodMrp" type="text" placeholder="e.g. 1499 or ₹1499" />
+        </div>
+
+        <div class="form-group">
+          <label for="prodPrice">Price (Selling Price)</label>
+          <input id="prodPrice" type="text" placeholder="e.g. 999 or ₹999" />
         </div>
 
         <div class="custom-grid-2 form-group">
@@ -82,7 +95,7 @@
         </div>
 
         <div class="form-group">
-          <label for="prodImages">Photos (Up to 4 photos)</label>
+          <label for="prodImages">Photos (Up to 4 photos, duplicate blocked)</label>
           <input id="prodImages" type="file" accept="image/*" multiple onchange="handleImagePreview(event)" />
           <div id="previewStrip" class="preview-strip"></div>
         </div>
@@ -99,7 +112,6 @@
         <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 10px;">Tip: Long-press any product card below to Edit or Delete.</p>
       </div>
 
-      <!-- Tab 2: Categories -->
       <div id="tabCategories" class="admin-section">
         <div class="form-group">
           <label for="newCategoryInput">New Category Name</label>
@@ -111,7 +123,6 @@
         <div id="categoryChips" class="chip-list"></div>
       </div>
 
-      <!-- Tab 3: Full Customization (Logo, Auto Banner 4-5 Photos, Layout, Stock Display) -->
       <div id="tabCustomize" class="admin-section">
         <div class="form-group">
           <label for="logoFileInput">Top Bar Company Logo</label>
@@ -131,8 +142,26 @@
             <input id="custBannerSpeed" type="number" min="2" max="15" value="3" />
           </div>
           <div>
+            <label for="custBannerAnim">Banner Animation Style</label>
+            <select id="custBannerAnim">
+              <option value="smooth-slide">Smooth Slide</option>
+              <option value="soft-glide">Soft Glide</option>
+              <option value="gentle-fade">Gentle Fade</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="custom-grid-2 form-group">
+          <div>
             <label for="custCardRadius">Card Corner Radius (px)</label>
             <input id="custCardRadius" type="number" min="4" max="28" value="16" />
+          </div>
+          <div>
+            <label for="custThemeMode">Default Theme Mode</label>
+            <select id="custThemeMode">
+              <option value="dark">Dark Theme</option>
+              <option value="light">Light Theme</option>
+            </select>
           </div>
         </div>
 
@@ -176,7 +205,6 @@
         </div>
       </div>
 
-      <!-- Tab 4: Store Settings -->
       <div id="tabSettings" class="admin-section">
         <div class="form-group">
           <label for="setStoreName">Store Name</label>
@@ -201,7 +229,6 @@
         <button id="saveSettingsBtn" class="btn btn-white" onclick="saveSiteSettings()">Save Settings</button>
       </div>
 
-      <!-- Tab 5: Change Password -->
       <div id="tabPassword" class="admin-section">
         <div class="form-group">
           <label for="oldPassInput">Current Password</label>
@@ -221,20 +248,15 @@
       </div>
     </section>
 
-    <!-- Auto-Changing Hero Banner -->
     <div id="heroBannerWrap" class="hero-banner-wrap">
-      <img id="heroBannerImg" class="hero-banner-img" alt="Banner" />
+      <div id="heroBannerTrack" class="hero-banner-track"></div>
       <div id="heroDots" class="hero-dots"></div>
     </div>
 
-    <!-- Category Filter Bar -->
     <div id="categoryBar" class="category-bar"></div>
-
-    <!-- Products Grid -->
     <div id="productsGrid" class="grid"></div>
   </main>
 
-  <!-- Password Modal with Show/Hide -->
   <div id="authModal" class="modal-backdrop">
     <div class="modal-box">
       <h3 style="margin-bottom: 12px;">Admin Login</h3>
@@ -252,7 +274,6 @@
     </div>
   </div>
 
-  <!-- Long-Press Action Modal -->
   <div id="longPressModal" class="modal-backdrop" onclick="if(event.target===this)closeLongPressModal()">
     <div class="modal-box">
       <h3 id="lpProductTitle" style="margin-bottom: 14px; font-size: 1rem;">Manage Product</h3>
@@ -264,7 +285,6 @@
     </div>
   </div>
 
-  <!-- Toast with Undo Support -->
   <div id="toast" class="status-toast">
     <span id="toastText"></span>
     <button id="toastUndoBtn" class="btn btn-sm btn-white" style="display: none;" onclick="undoLastDelete()">Undo</button>
