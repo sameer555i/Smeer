@@ -1,14 +1,15 @@
 :root {
   --bg-dark: #070a12;
   --glass: rgba(255, 255, 255, 0.06);
-  --glass-strong: rgba(15, 21, 36, 0.92);
+  --glass-strong: rgba(15, 21, 36, 0.94);
   --glass-border: rgba(255, 255, 255, 0.14);
   --text-main: #f3f6fc;
   --text-muted: #9aa4b8;
-  --accent: #3b82f6;
-  --accent-glow: rgba(59, 130, 246, 0.35);
+  --btn-white-bg: #ffffff;
+  --btn-white-text: #0b0f19;
   --whatsapp: #22c55e;
   --danger: #ef4444;
+  --card-radius: 16px;
 }
 
 * {
@@ -17,19 +18,45 @@
   padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+input,
+textarea,
+select {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 body {
   min-height: 100vh;
   background:
-    radial-gradient(circle at 12% 12%, rgba(59, 130, 246, 0.16), transparent 42%),
-    radial-gradient(circle at 88% 20%, rgba(168, 85, 247, 0.14), transparent 45%),
+    radial-gradient(circle at 12% 12%, rgba(255, 255, 255, 0.06), transparent 42%),
+    radial-gradient(circle at 88% 20%, rgba(255, 255, 255, 0.04), transparent 45%),
     var(--bg-dark);
   color: var(--text-main);
-  padding-bottom: 84px;
+  padding-bottom: 86px;
 }
 
-/* Header & Three-line Menu */
+body.compact-cards .card-body {
+  padding: 8px;
+  gap: 4px;
+}
+
+body.compact-cards .card-title {
+  font-size: 0.82rem;
+}
+
+body.compact-cards .card-desc {
+  display: none;
+}
+
+body.hide-dates .card-date {
+  display: none;
+}
+
+/* Topbar */
 .topbar {
   position: sticky;
   top: 0;
@@ -38,7 +65,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background: rgba(10, 14, 25, 0.85);
+  background: rgba(10, 14, 25, 0.88);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   border-bottom: 1px solid var(--glass-border);
@@ -48,11 +75,13 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
 }
 
 .hamburger-btn {
   width: 38px;
   height: 38px;
+  flex-shrink: 0;
   border-radius: 11px;
   border: 1px solid var(--glass-border);
   background: var(--glass);
@@ -68,16 +97,39 @@ body {
   display: block;
   width: 17px;
   height: 2px;
-  background: var(--text-main);
+  background: #ffffff;
   border-radius: 2px;
 }
 
+.brand-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.brand-logo-img {
+  height: 30px;
+  max-width: 110px;
+  object-fit: contain;
+  border-radius: 7px;
+  background: #ffffff;
+  padding: 2px 5px;
+  display: none;
+}
+
+.brand-logo-img.visible {
+  display: block;
+}
+
 .brand {
-  font-size: 1.08rem;
+  font-size: 1.05rem;
   font-weight: 700;
   letter-spacing: 0.2px;
-  cursor: pointer;
-  user-select: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Side Drawer */
@@ -142,7 +194,7 @@ body {
   border-color: var(--glass-border);
 }
 
-/* Containers & Buttons */
+/* Containers & White Buttons */
 .container {
   max-width: 1120px;
   margin: 14px auto;
@@ -161,7 +213,7 @@ body {
   color: var(--text-main);
   padding: 10px 15px;
   border-radius: 12px;
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
@@ -169,11 +221,11 @@ body {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  transition: transform 0.15s ease, opacity 0.2s ease;
+  transition: transform 0.14s ease, opacity 0.2s ease;
 }
 
 .btn:active {
-  transform: scale(0.97);
+  transform: scale(0.96);
 }
 
 .btn:disabled {
@@ -181,10 +233,11 @@ body {
   cursor: not-allowed;
 }
 
-.btn-primary {
-  background: var(--accent);
-  border-color: rgba(255, 255, 255, 0.22);
-  box-shadow: 0 6px 20px var(--accent-glow);
+.btn-white {
+  background: var(--btn-white-bg);
+  color: var(--btn-white-text);
+  border-color: #ffffff;
+  font-weight: 700;
 }
 
 .btn-whatsapp {
@@ -198,15 +251,66 @@ body {
 }
 
 .btn-danger {
-  background: rgba(239, 68, 68, 0.16);
-  border-color: rgba(239, 68, 68, 0.42);
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.45);
   color: #fca5a5;
 }
 
 .btn-sm {
-  padding: 6px 10px;
+  padding: 6px 11px;
   font-size: 0.78rem;
   border-radius: 9px;
+}
+
+/* Auto-Changing Hero Banner (4-5 Photos) */
+.hero-banner-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 8;
+  max-height: 240px;
+  border-radius: var(--card-radius);
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  margin-bottom: 14px;
+  display: none;
+}
+
+.hero-banner-wrap.active {
+  display: block;
+}
+
+.hero-banner-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: opacity 0.35s ease;
+}
+
+.hero-dots {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(7, 10, 18, 0.55);
+}
+
+.hero-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+}
+
+.hero-dot.active {
+  width: 16px;
+  background: #ffffff;
 }
 
 /* Category Pills */
@@ -236,12 +340,13 @@ body {
 }
 
 .cat-pill.active {
-  background: var(--accent);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.25);
+  background: #ffffff;
+  color: #0b0f19;
+  border-color: #ffffff;
+  font-weight: 700;
 }
 
-/* Flipkart-like 2-Column Mobile Grid */
+/* 2-Column Mobile Grid */
 .grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -256,7 +361,7 @@ body {
 }
 
 .card {
-  border-radius: 16px;
+  border-radius: var(--card-radius);
   overflow: hidden;
   background: var(--glass);
   border: 1px solid var(--glass-border);
@@ -290,7 +395,7 @@ body {
   border-radius: 999px;
   font-size: 0.68rem;
   font-weight: 600;
-  background: rgba(9, 12, 20, 0.78);
+  background: rgba(9, 12, 20, 0.82);
   border: 1px solid var(--glass-border);
   max-width: 85%;
   white-space: nowrap;
@@ -305,7 +410,7 @@ body {
   padding: 3px 7px;
   border-radius: 999px;
   font-size: 0.68rem;
-  background: rgba(9, 12, 20, 0.78);
+  background: rgba(9, 12, 20, 0.82);
   border: 1px solid var(--glass-border);
 }
 
@@ -315,6 +420,19 @@ body {
   flex-direction: column;
   gap: 5px;
   flex: 1;
+}
+
+.stock-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.stock-in {
+  color: #4ade80;
+}
+
+.stock-out {
+  color: #f87171;
 }
 
 .card-title {
@@ -348,10 +466,15 @@ body {
   flex-wrap: wrap;
 }
 
+.card-date {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
 /* Glass Panels & Forms */
 .glass-box {
   padding: 18px;
-  border-radius: 20px;
+  border-radius: var(--card-radius);
   background: var(--glass);
   border: 1px solid var(--glass-border);
   backdrop-filter: blur(20px);
@@ -373,16 +496,36 @@ label {
 input[type="text"],
 input[type="password"],
 input[type="email"],
+input[type="number"],
 select,
 textarea {
   width: 100%;
   padding: 11px 14px;
   border-radius: 13px;
   border: 1px solid var(--glass-border);
-  background: rgba(5, 8, 16, 0.72);
+  background: rgba(5, 8, 16, 0.76);
   color: var(--text-main);
   font-size: 0.94rem;
   outline: none;
+}
+
+.pass-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.pass-toggle-btn {
+  position: absolute;
+  right: 8px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  background: #ffffff;
+  color: #0b0f19;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 textarea {
@@ -403,16 +546,17 @@ textarea {
   padding: 8px 14px;
   border-radius: 12px;
   border: 1px solid var(--glass-border);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.05);
   color: var(--text-muted);
   font-weight: 600;
-  font-size: 0.86rem;
+  font-size: 0.85rem;
   cursor: pointer;
 }
 
 .tab-btn.active {
-  background: var(--accent);
-  color: #fff;
+  background: #ffffff;
+  color: #0b0f19;
+  font-weight: 700;
 }
 
 .admin-section {
@@ -421,6 +565,12 @@ textarea {
 
 .admin-section.active {
   display: block;
+}
+
+.custom-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
 
 .preview-strip {
@@ -485,7 +635,7 @@ textarea {
   cursor: pointer;
 }
 
-/* Flipkart-like Horizontal Swipe Product Gallery */
+/* Swipeable Product Detail Gallery */
 .product-page-wrap {
   width: 100%;
   overflow-x: hidden;
@@ -545,7 +695,7 @@ textarea {
 
 .carousel-dot.active {
   width: 18px;
-  background: var(--accent);
+  background: #ffffff;
 }
 
 .product-info-body {
@@ -568,7 +718,7 @@ textarea {
   border-top: 1px solid var(--glass-border);
 }
 
-/* Modal & Toast */
+/* Modal, Long-Press Sheet & Toast */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -600,17 +750,19 @@ textarea {
   bottom: 76px;
   transform: translateX(-50%);
   z-index: 90;
-  padding: 10px 18px;
+  padding: 10px 16px;
   border-radius: 14px;
-  background: rgba(14, 19, 34, 0.95);
+  background: rgba(14, 19, 34, 0.96);
   border: 1px solid var(--glass-border);
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   display: none;
-  text-align: center;
+  align-items: center;
+  gap: 12px;
+  max-width: 92vw;
 }
 
 .status-toast.show {
-  display: block;
+  display: flex;
 }
 
 .empty-state {
