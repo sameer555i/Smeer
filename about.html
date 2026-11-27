@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -14,9 +14,12 @@
         <span></span>
         <span></span>
       </button>
-      <div class="brand js-store-name">Store</div>
+      <div class="brand-wrap">
+        <img id="topLogoImg" class="brand-logo-img" alt="Logo" />
+        <div class="brand js-store-name">Sameer Store</div>
+      </div>
     </div>
-    <a href="index.html" class="btn btn-sm">Catalog</a>
+    <a href="index.html" class="btn btn-sm btn-white">Catalog</a>
   </header>
 
   <div id="drawerBackdrop" class="drawer-backdrop"></div>
@@ -34,7 +37,10 @@
     </section>
   </main>
 
-  <div id="toast" class="status-toast"></div>
+  <div id="toast" class="status-toast">
+    <span id="toastText"></span>
+    <button id="toastUndoBtn" class="btn btn-sm btn-white" style="display: none;">Undo</button>
+  </div>
 
   <script src="config.js"></script>
   <script src="api.js"></script>
@@ -44,12 +50,12 @@
         const data = await StoreAPI.fetchAll(false);
         if (data.status === "success") {
           const s = data.settings || {};
-          document.title = `About Us - ${s.store_name || "Store"}`;
+          document.title = `About Us - ${s.store_name || "Sameer Store"}`;
           setupNavigation(s.store_name);
-          document.getElementById("aboutContent").textContent = s.about_us || "About Us जानकारी जल्द ही अपडेट होगी।";
+          document.getElementById("aboutContent").textContent = s.about_us || "About Us details will be updated soon.";
         }
       } catch (e) {
-        document.getElementById("aboutContent").textContent = "जानकारी लोड नहीं हो सकी।";
+        document.getElementById("aboutContent").textContent = "Unable to load details.";
       }
     });
   </script>
