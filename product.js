@@ -83,7 +83,7 @@ function renderProductDetail(product, settings) {
   const messageText =
     `Hello, I want to inquire about this product:\n\n` +
     `Product: ${product.title}\n` +
-    (priceFormatted ? `Price: ${priceFormatted}\n` : "") +
+    (priceFormatted ? `Rate: ${priceFormatted}\n` : "") +
     (mrpFormatted ? `MRP: ${mrpFormatted}\n` : "") +
     `Category: ${product.category || "General"}\n` +
     `Stock: ${stockLabel}\n` +
@@ -109,9 +109,9 @@ function renderProductDetail(product, settings) {
     : `<div class="empty-state">No Image</div>`;
 
   const priceBlockHtml = (mrpFormatted || priceFormatted)
-    ? `<div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:10px; font-weight:700;">
-        ${priceFormatted ? `<span style="font-size:1.1rem;">Price: ${escapeHtml(priceFormatted)}</span>` : ""}
-        ${mrpFormatted ? `<span style="color:var(--text-muted); ${priceFormatted ? "text-decoration:line-through; font-size:0.9rem;" : "font-size:1.05rem;"}">MRP: ${escapeHtml(mrpFormatted)}</span>` : ""}
+    ? `<div class="price-highlight-box" style="padding: 8px 12px; margin-bottom: 12px; width: fit-content;">
+        ${priceFormatted ? `<span class="rate-pill" style="font-size: 1.15rem;">${escapeHtml(priceFormatted)}</span>` : ""}
+        ${mrpFormatted ? `<span class="mrp-strike" style="font-size: 0.92rem;">MRP ${escapeHtml(mrpFormatted)}</span>` : ""}
        </div>`
     : "";
 
@@ -163,18 +163,15 @@ function renderSuggestedProducts(currentProduct, allProducts) {
     const url = `product.html?id=${encodeURIComponent(item.id)}`;
     const { mrp, price, cleanDesc } = parsePricingFromDesc(item.description);
     return `
-      <article class="card">
-        <div class="card-img-wrap" onclick="location.href='${url}'">
+      <article class="card" onclick="location.href='${url}'">
+        <div class="card-img-wrap">
           ${firstImg ? `<img src="${firstImg}" alt="${escapeHtml(item.title)}" loading="lazy" />` : ""}
           <span class="badge-top">${escapeHtml(item.category || "General")}</span>
         </div>
         <div class="card-body">
-          ${(mrp || price) ? `<div style="font-size:0.8rem; font-weight:700;">${escapeHtml(price ? `Price: ${formatRupeeValue(price)}` : `MRP: ${formatRupeeValue(mrp)}`)}</div>` : ""}
-          <div class="card-title" onclick="location.href='${url}'">${escapeHtml(item.title)}</div>
+          ${(mrp || price) ? `<div class="price-highlight-box">${price ? `<span class="rate-pill">${escapeHtml(formatRupeeValue(price))}</span>` : ""}${mrp ? `<span class="mrp-strike">MRP ${escapeHtml(formatRupeeValue(mrp))}</span>` : ""}</div>` : ""}
+          <div class="card-title">${escapeHtml(item.title)}</div>
           <div class="card-desc">${escapeHtml(cleanDesc)}</div>
-          <div class="card-footer">
-            <a href="${url}" class="btn btn-sm btn-white">View</a>
-          </div>
         </div>
       </article>
     `;

@@ -65,14 +65,15 @@
           </select>
         </div>
 
-        <div class="form-group">
-          <label for="prodMrp">MRP</label>
-          <input id="prodMrp" type="text" placeholder="e.g. 1499 or ₹1499" />
-        </div>
-
-        <div class="form-group">
-          <label for="prodPrice">Price (Selling Price)</label>
-          <input id="prodPrice" type="text" placeholder="e.g. 999 or ₹999" />
+        <div class="custom-grid-2 form-group">
+          <div>
+            <label for="prodMrp">MRP (Original Price)</label>
+            <input id="prodMrp" type="text" placeholder="e.g. 1499" />
+          </div>
+          <div>
+            <label for="prodPrice">Rate (Selling Price)</label>
+            <input id="prodPrice" type="text" placeholder="e.g. 999" />
+          </div>
         </div>
 
         <div class="custom-grid-2 form-group">
@@ -131,7 +132,7 @@
         </div>
 
         <div class="form-group">
-          <label for="bannerFilesInput">Auto-Changing Hero Banner Photos (Up to 5 photos)</label>
+          <label for="bannerFilesInput">Auto-Changing Hero Banner Photos (Up to 5 photos, syncs to all phones)</label>
           <input id="bannerFilesInput" type="file" accept="image/*" multiple onchange="handleBannerUpload(event)" />
           <div id="bannerPreviewBox" class="preview-strip"></div>
         </div>

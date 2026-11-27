@@ -12,6 +12,10 @@ let tapCount = 0;
 let tapTimer = null;
 let verifiedPassword = sessionStorage.getItem("verified_admin_pass") || "";
 let lastDeletedProduct = null;
+let isLongPressTriggered = false;
+
+const GLOBAL_CONFIG_TAG = "[[GLOBAL_UI_CONFIG:";
+const GLOBAL_CONFIG_END = "]]";
 
 const DEFAULT_CUSTOM = {
   theme_mode: "dark",
@@ -35,6 +39,39 @@ function loadLocalCustom() {
   } catch (e) {
     return { ...DEFAULT_CUSTOM };
   }
+}
+
+function extractGlobalConfigFromSettings(settings) {
+  if (!settings) return null;
+  if (settings.custom_ui_json) {
+    try {
+      return JSON.parse(settings.custom_ui_json);
+    } catch (e) {}
+  }
+  const sources = [settings.about_us, settings.contact_us];
+  for (const src of sources) {
+    const str = String(src || "");
+    const startIdx = str.indexOf(GLOBAL_CONFIG_TAG);
+    if (startIdx !== -1) {
+      const jsonStart = startIdx + GLOBAL_CONFIG_TAG.length;
+      const endIdx = str.indexOf(GLOBAL_CONFIG_END, jsonStart);
+      if (endIdx !== -1) {
+        try {
+          return JSON.parse(str.slice(jsonStart, endIdx));
+        } catch (e) {}
+      }
+    }
+  }
+  return null;
+}
+
+function stripGlobalConfigTag(text) {
+  const str = String(text || "");
+  const startIdx = str.indexOf(GLOBAL_CONFIG_TAG);
+  if (startIdx === -1) return str;
+  const endIdx = str.indexOf(GLOBAL_CONFIG_END, startIdx + GLOBAL_CONFIG_TAG.length);
+  if (endIdx === -1) return str;
+  return (str.slice(0, startIdx) + str.slice(endIdx + GLOBAL_CONFIG_END.length)).trim();
 }
 
 function parsePricingFromDesc(desc) {
@@ -75,7 +112,6 @@ function formatRupeeValue(val) {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  ensurePriceInputsExist();
   applyCustomizationUI();
   setupSecretAdminTrigger();
   await initCatalog();
@@ -84,19 +120,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     showAdminPanelUI();
   }
 });
-
-function ensurePriceInputsExist() {
-  if (document.getElementById("prodPrice")) return;
-  const mrpEl = document.getElementById("prodMrp");
-  if (!mrpEl || !mrpEl.parentElement) return;
-  const wrap = document.createElement("div");
-  wrap.className = "form-group";
-  wrap.innerHTML = `
-    <label for="prodPrice">Price (Selling Price)</label>
-    <input id="prodPrice" type="text" placeholder="e.g. 999 or ₹999" />
-  `;
-  mrpEl.parentElement.insertAdjacentElement("afterend", wrap);
-}
 
 function toggleThemeMode() {
   const isLight = document.body.classList.contains("light-theme");
@@ -297,7 +320,6 @@ async function verifyAdminLogin() {
 }
 
 function showAdminPanelUI() {
-  ensurePriceInputsExist();
   document.getElementById("adminPanel").style.display = "block";
   document.getElementById("exitAdminBtn").style.display = "inline-flex";
   populateAdminForms();
@@ -335,22 +357,20 @@ async function initCatalog(forceRefresh = false) {
     allCategories = data.categories || [];
     currentSettings = data.settings || {};
 
-    if (currentSettings.custom_ui_json) {
-      try {
-        const remoteCustom = JSON.parse(currentSettings.custom_ui_json);
-        const localSaved = loadLocalCustom();
-        storeCustom = {
-          ...DEFAULT_CUSTOM,
-          ...remoteCustom,
-          theme_mode: localSaved.theme_mode || remoteCustom.theme_mode || "dark",
-          banner_images: (Array.isArray(remoteCustom.banner_images) && remoteCustom.banner_images.length)
-            ? remoteCustom.banner_images
-            : (localSaved.banner_images || []),
-          logo_url: remoteCustom.logo_url || localSaved.logo_url || ""
-        };
-        localStorage.setItem("sameer_custom_ui", JSON.stringify(storeCustom));
-        applyCustomizationUI();
-      } catch (e) {}
+    const remoteCustom = extractGlobalConfigFromSettings(currentSettings);
+    if (remoteCustom) {
+      const localSaved = loadLocalCustom();
+      storeCustom = {
+        ...DEFAULT_CUSTOM,
+        ...remoteCustom,
+        theme_mode: localSaved.theme_mode || remoteCustom.theme_mode || "dark",
+        banner_images: (Array.isArray(remoteCustom.banner_images) && remoteCustom.banner_images.length)
+          ? remoteCustom.banner_images
+          : (localSaved.banner_images || []),
+        logo_url: remoteCustom.logo_url || localSaved.logo_url || ""
+      };
+      localStorage.setItem("sameer_custom_ui", JSON.stringify(storeCustom));
+      applyCustomizationUI();
     }
 
     document.title = currentSettings.store_name || "K-TECH";
@@ -403,6 +423,14 @@ function selectCategory(cat) {
   renderProducts();
 }
 
+function openProductCard(url) {
+  if (isLongPressTriggered) {
+    isLongPressTriggered = false;
+    return;
+  }
+  location.href = url;
+}
+
 function renderProducts() {
   const grid = document.getElementById("productsGrid");
   const list = activeCategory === "All"
@@ -424,27 +452,26 @@ function renderProducts() {
     const qtyText = isOut ? "Out of Stock" : `In Stock (${Number(item.stockQty ?? 10)})`;
     const { mrp, price, cleanDesc } = parsePricingFromDesc(item.description);
 
-    const priceRowHtml = (mrp || price)
-      ? `<div style="display:flex; align-items:center; gap:7px; flex-wrap:wrap; font-size:0.82rem; font-weight:700;">
-          ${price ? `<span>Price: ${escapeHtml(formatRupeeValue(price))}</span>` : ""}
-          ${mrp ? `<span style="color:var(--text-muted); ${price ? "text-decoration:line-through; font-size:0.74rem;" : ""}">MRP: ${escapeHtml(formatRupeeValue(mrp))}</span>` : ""}
+    const priceHighlightHtml = (mrp || price)
+      ? `<div class="price-highlight-box">
+          ${price ? `<span class="rate-pill">${escapeHtml(formatRupeeValue(price))}</span>` : ""}
+          ${mrp ? `<span class="mrp-strike">MRP ${escapeHtml(formatRupeeValue(mrp))}</span>` : ""}
          </div>`
       : "";
 
     return `
-      <article class="card" data-prod-id="${escapeHtml(item.id)}" data-admin="${isAdmin ? "1" : "0"}">
-        <div class="card-img-wrap" onclick="location.href='${productUrl}'">
+      <article class="card" data-prod-id="${escapeHtml(item.id)}" data-admin="${isAdmin ? "1" : "0"}" onclick="openProductCard('${productUrl}')">
+        <div class="card-img-wrap">
           ${firstImg ? `<img src="${firstImg}" alt="${escapeHtml(item.title)}" loading="lazy" />` : ""}
           <span class="badge-top">${escapeHtml(item.category || "General")}</span>
           ${count > 1 ? `<span class="badge-bottom">${count} photos</span>` : ""}
         </div>
         <div class="card-body">
           ${storeCustom.show_stock ? `<div class="stock-tag ${isOut ? "stock-out" : "stock-in"}">${escapeHtml(qtyText)}</div>` : ""}
-          ${priceRowHtml}
-          <div class="card-title" onclick="location.href='${productUrl}'">${escapeHtml(item.title)}</div>
+          ${priceHighlightHtml}
+          <div class="card-title">${escapeHtml(item.title)}</div>
           <div class="card-desc">${escapeHtml(cleanDesc)}</div>
           <div class="card-footer">
-            <a href="${productUrl}" class="btn btn-sm btn-white">View Details</a>
             <span class="card-date">${escapeHtml(item.date || "")}</span>
           </div>
         </div>
@@ -463,8 +490,10 @@ function attachLongPressHandlers() {
     const prodId = card.getAttribute("data-prod-id");
 
     const startPress = () => {
+      isLongPressTriggered = false;
       clearTimeout(pressTimer);
       pressTimer = setTimeout(() => {
+        isLongPressTriggered = true;
         openLongPressModal(prodId);
       }, 550);
     };
@@ -546,11 +575,11 @@ function populateAdminForms() {
   document.getElementById("setStoreName").value = currentSettings.store_name || "";
   document.getElementById("setWhatsapp").value = currentSettings.whatsapp_number || "";
   document.getElementById("setEmail").value = currentSettings.contact_email || "";
-  document.getElementById("setAbout").value = currentSettings.about_us || "";
-  document.getElementById("setContact").value = currentSettings.contact_us || "";
+  document.getElementById("setAbout").value = stripGlobalConfigTag(currentSettings.about_us || "");
+  document.getElementById("setContact").value = stripGlobalConfigTag(currentSettings.contact_us || "");
 }
 
-function compressImageFile(file, maxWidth = 900, quality = 0.72) {
+function compressImageFile(file, maxWidth = 720, quality = 0.6) {
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -579,7 +608,7 @@ function getSimpleFingerprint(dataUrl) {
 async function handleLogoUpload(event) {
   const file = (event.target.files || [])[0];
   if (!file) return;
-  logoBase64 = await compressImageFile(file, 360, 0.8);
+  logoBase64 = await compressImageFile(file, 260, 0.72);
   document.getElementById("logoPreviewBox").innerHTML = `<img src="${logoBase64}" alt="Logo Preview" />`;
 }
 
@@ -590,7 +619,7 @@ async function handleBannerUpload(event) {
   bannerImagesBase64 = [];
 
   for (const file of files) {
-    const compressed = await compressImageFile(file, 960, 0.68);
+    const compressed = await compressImageFile(file, 640, 0.55);
     bannerImagesBase64.push(compressed);
     const img = document.createElement("img");
     img.src = compressed;
@@ -618,9 +647,13 @@ async function saveCustomization() {
     banner_images: bannerImagesBase64.length ? bannerImagesBase64 : (storeCustom.banner_images || [])
   };
 
-  localStorage.setItem("sameer_custom_ui", JSON.stringify(storeCustom));
+  const serializedCustom = JSON.stringify(storeCustom);
+  localStorage.setItem("sameer_custom_ui", serializedCustom);
   applyCustomizationUI();
   renderProducts();
+
+  const cleanAbout = stripGlobalConfigTag(currentSettings.about_us || "");
+  const embeddedAbout = `${cleanAbout}\n${GLOBAL_CONFIG_TAG}${serializedCustom}${GLOBAL_CONFIG_END}`.trim();
 
   try {
     const res = await StoreAPI.postAction({
@@ -628,13 +661,16 @@ async function saveCustomization() {
       password: verifiedPassword,
       settings: {
         ...currentSettings,
-        custom_ui_json: JSON.stringify(storeCustom)
+        about_us: embeddedAbout,
+        custom_ui_json: serializedCustom
       }
     });
     if (res && res.status === "success") {
-      showToast("Saved for all devices");
+      currentSettings.about_us = embeddedAbout;
+      currentSettings.custom_ui_json = serializedCustom;
+      showToast("Saved & synced to all phones");
     } else {
-      showToast("Saved locally (check backend sync)");
+      showToast(res.message || "Saved locally");
     }
   } catch (e) {
     showToast("Saved locally");
@@ -681,7 +717,6 @@ function startEditProduct(id) {
   const prod = allProducts.find((p) => p.id === id);
   if (!prod) return;
 
-  ensurePriceInputsExist();
   switchAdminTab("tabProducts", document.querySelector('.tab-btn[data-tab="tabProducts"]'));
   document.getElementById("editProdId").value = prod.id;
   document.getElementById("prodFormHeading").textContent = "Edit Product";
@@ -690,9 +725,7 @@ function startEditProduct(id) {
 
   const { mrp, price, cleanDesc } = parsePricingFromDesc(prod.description);
   document.getElementById("prodMrp").value = mrp;
-  if (document.getElementById("prodPrice")) {
-    document.getElementById("prodPrice").value = price;
-  }
+  document.getElementById("prodPrice").value = price;
 
   document.getElementById("prodStockStatus").value = prod.stockStatus || "in_stock";
   document.getElementById("prodStockQty").value = Number(prod.stockQty ?? 10);
@@ -715,8 +748,8 @@ function resetProductForm() {
   document.getElementById("editProdId").value = "";
   document.getElementById("prodFormHeading").textContent = "Add New Product";
   document.getElementById("prodTitle").value = "";
-  if (document.getElementById("prodMrp")) document.getElementById("prodMrp").value = "";
-  if (document.getElementById("prodPrice")) document.getElementById("prodPrice").value = "";
+  document.getElementById("prodMrp").value = "";
+  document.getElementById("prodPrice").value = "";
   document.getElementById("prodStockStatus").value = "in_stock";
   document.getElementById("prodStockQty").value = "10";
   document.getElementById("prodDesc").value = "";
@@ -732,10 +765,8 @@ async function saveProduct() {
   const editId = document.getElementById("editProdId").value.trim();
   const title = document.getElementById("prodTitle").value.trim();
   const category = document.getElementById("prodCategory").value;
-  const mrpEl = document.getElementById("prodMrp");
-  const priceEl = document.getElementById("prodPrice");
-  const rawMrp = mrpEl ? mrpEl.value.trim() : "";
-  const rawPrice = priceEl ? priceEl.value.trim() : "";
+  const rawMrp = document.getElementById("prodMrp").value.trim();
+  const rawPrice = document.getElementById("prodPrice").value.trim();
   const stockStatus = document.getElementById("prodStockStatus").value;
   const stockQty = Math.max(0, Number(document.getElementById("prodStockQty").value) || 0);
   const rawDesc = document.getElementById("prodDesc").value.trim();
@@ -895,6 +926,10 @@ async function saveSiteSettings() {
   btn.disabled = true;
   btn.textContent = "Saving...";
 
+  const cleanAbout = document.getElementById("setAbout").value.trim();
+  const serializedCustom = JSON.stringify(storeCustom);
+  const embeddedAbout = `${cleanAbout}\n${GLOBAL_CONFIG_TAG}${serializedCustom}${GLOBAL_CONFIG_END}`.trim();
+
   try {
     const res = await StoreAPI.postAction({
       action: "save_settings",
@@ -904,8 +939,9 @@ async function saveSiteSettings() {
         store_name: document.getElementById("setStoreName").value.trim(),
         whatsapp_number: document.getElementById("setWhatsapp").value.trim(),
         contact_email: document.getElementById("setEmail").value.trim(),
-        about_us: document.getElementById("setAbout").value.trim(),
-        contact_us: document.getElementById("setContact").value.trim()
+        about_us: embeddedAbout,
+        contact_us: document.getElementById("setContact").value.trim(),
+        custom_ui_json: serializedCustom
       }
     });
 

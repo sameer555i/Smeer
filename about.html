@@ -45,6 +45,15 @@
   <script src="config.js"></script>
   <script src="api.js"></script>
   <script>
+    function cleanAboutText(raw) {
+      const str = String(raw || "");
+      const idx = str.indexOf("[[GLOBAL_UI_CONFIG:");
+      if (idx === -1) return str;
+      const end = str.indexOf("]]", idx);
+      if (end === -1) return str;
+      return (str.slice(0, idx) + str.slice(end + 2)).trim();
+    }
+
     document.addEventListener("DOMContentLoaded", async () => {
       try {
         const data = await StoreAPI.fetchAll(false);
@@ -52,7 +61,8 @@
           const s = data.settings || {};
           document.title = `About Us - ${s.store_name || "K-TECH"}`;
           setupNavigation(s.store_name);
-          document.getElementById("aboutContent").textContent = s.about_us || "About Us details will be updated soon.";
+          const clean = cleanAboutText(s.about_us);
+          document.getElementById("aboutContent").textContent = clean || "About Us details will be updated soon.";
         }
       } catch (e) {
         document.getElementById("aboutContent").textContent = "Unable to load details.";
