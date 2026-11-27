@@ -1,10 +1,17 @@
 document.addEventListener("DOMContentLoaded", async () => {
+  try {
+    const custom = JSON.parse(localStorage.getItem("sameer_custom_ui") || "{}");
+    document.documentElement.style.setProperty("--card-radius", `${Number(custom.card_radius) || 16}px`);
+    document.body.classList.toggle("compact-cards", Boolean(custom.compact_cards));
+    document.body.classList.toggle("hide-dates", !custom.show_date);
+  } catch (e) {}
+
   const params = new URLSearchParams(window.location.search);
   const prodId = params.get("id");
   const detailBox = document.getElementById("productDetailBox");
 
   if (!prodId) {
-    detailBox.innerHTML = `<div class="empty-state">Product ID missing. <br/><br/><a href="index.html" class="btn btn-primary">Back to Catalog</a></div>`;
+    detailBox.innerHTML = `<div class="empty-state">Product ID missing.<br/><br/><a href="index.html" class="btn btn-white">Back to Catalog</a></div>`;
     return;
   }
 
@@ -17,16 +24,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const settings = data.settings || {};
     const products = data.products || [];
-    document.title = `${settings.store_name || "Store"} - Product Details`;
+    document.title = `${settings.store_name || "Sameer Store"} - Product Details`;
     setupNavigation(settings.store_name);
 
     const product = products.find((p) => String(p.id) === String(prodId));
     if (!product) {
-      detailBox.innerHTML = `<div class="empty-state">Product not found. <br/><br/><a href="index.html" class="btn btn-primary">Back to Catalog</a></div>`;
+      detailBox.innerHTML = `<div class="empty-state">Product not found.<br/><br/><a href="index.html" class="btn btn-white">Back to Catalog</a></div>`;
       return;
     }
 
-    document.title = `${product.title} - ${settings.store_name || "Store"}`;
+    document.title = `${product.title} - ${settings.store_name || "Sameer Store"}`;
     renderProductDetail(product, settings);
     renderSuggestedProducts(product, products);
   } catch (err) {
@@ -38,13 +45,15 @@ function renderProductDetail(product, settings) {
   const detailBox = document.getElementById("productDetailBox");
   const stickyBar = document.getElementById("stickyBuyBar");
   const imgs = product.images && product.images.length ? product.images : [];
+  const isOut = product.stockStatus === "out_of_stock" || Number(product.stockQty) <= 0;
+  const stockLabel = isOut ? "Out of Stock" : `In Stock (${Number(product.stockQty ?? 10)} available)`;
 
   const waNumber = String(settings.whatsapp_number || "917676729300").replace(/\D/g, "");
   const messageText =
-    `Hello, I want to buy this product:\n\n` +
+    `Hello, I want to inquire about this product:\n\n` +
     `Product: ${product.title}\n` +
     `Category: ${product.category || "General"}\n` +
-    `Description: ${product.description}\n` +
+    `Stock: ${stockLabel}\n` +
     `Link: ${window.location.href}`;
 
   const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(messageText)}`;
@@ -69,8 +78,9 @@ function renderProductDetail(product, settings) {
   detailBox.innerHTML = `
     ${carouselHtml}
     <div class="product-info-body">
-      <div style="margin-bottom: 8px;">
+      <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px;">
         <span class="chip" style="margin-top: 0;">${escapeHtml(product.category || "General")}</span>
+        <span class="stock-tag ${isOut ? "stock-out" : "stock-in"}">${escapeHtml(stockLabel)}</span>
       </div>
       <h1 style="font-size: 1.25rem; line-height: 1.35; margin-bottom: 10px;">${escapeHtml(product.title)}</h1>
       <p style="color: var(--text-muted); font-size: 0.94rem; line-height: 1.6; white-space: pre-line;">${escapeHtml(product.description)}</p>
@@ -79,7 +89,7 @@ function renderProductDetail(product, settings) {
 
   stickyBar.style.display = "flex";
   stickyBar.innerHTML = `
-    <a href="index.html" class="btn">Catalog</a>
+    <a href="index.html" class="btn btn-white">Catalog</a>
     <a href="${waUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-whatsapp">Buy on WhatsApp</a>
   `;
 
@@ -120,7 +130,7 @@ function renderSuggestedProducts(currentProduct, allProducts) {
           <div class="card-title" onclick="location.href='${url}'">${escapeHtml(item.title)}</div>
           <div class="card-desc">${escapeHtml(item.description)}</div>
           <div class="card-footer">
-            <a href="${url}" class="btn btn-sm btn-primary">View</a>
+            <a href="${url}" class="btn btn-sm btn-white">View</a>
           </div>
         </div>
       </article>
