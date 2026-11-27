@@ -57,11 +57,6 @@ function setupNavigation(storeName) {
 
   try {
     const custom = JSON.parse(localStorage.getItem("sameer_custom_ui") || "{}");
-    if (custom.theme_mode === "light") {
-      document.body.classList.add("light-theme");
-    } else {
-      document.body.classList.remove("light-theme");
-    }
     const logoImg = document.getElementById("topLogoImg");
     if (logoImg && custom.logo_url) {
       logoImg.src = custom.logo_url;
