@@ -55,6 +55,15 @@ function setupNavigation(storeName) {
     el.textContent = storeName || "Sameer Store";
   });
 
+  try {
+    const custom = JSON.parse(localStorage.getItem("sameer_custom_ui") || "{}");
+    const logoImg = document.getElementById("topLogoImg");
+    if (logoImg && custom.logo_url) {
+      logoImg.src = custom.logo_url;
+      logoImg.classList.add("visible");
+    }
+  } catch (e) {}
+
   const menuBtn = document.getElementById("menuBtn");
   const drawer = document.getElementById("sideDrawer");
   const backdrop = document.getElementById("drawerBackdrop");
@@ -72,13 +81,32 @@ function setupNavigation(storeName) {
   }
 }
 
-function showToast(msg) {
+function showToast(msg, showUndo = false) {
   const toast = document.getElementById("toast");
+  const textEl = document.getElementById("toastText");
+  const undoBtn = document.getElementById("toastUndoBtn");
   if (!toast) return;
-  toast.textContent = msg;
+
+  if (textEl) {
+    textEl.textContent = msg;
+  } else {
+    toast.textContent = msg;
+  }
+
+  if (undoBtn) {
+    undoBtn.style.display = showUndo ? "inline-flex" : "none";
+  }
+
   toast.classList.add("show");
   clearTimeout(window._toastTimer);
-  window._toastTimer = setTimeout(() => toast.classList.remove("show"), 2800);
+  window._toastTimer = setTimeout(() => {
+    toast.classList.remove("show");
+  }, showUndo ? 5000 : 2800);
+}
+
+function hideToast() {
+  const toast = document.getElementById("toast");
+  if (toast) toast.classList.remove("show");
 }
 
 function escapeHtml(str) {
