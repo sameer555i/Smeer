@@ -485,19 +485,23 @@ textarea {
   cursor: pointer;
 }
 
-/* Fullscreen Swipeable Product Detail Page */
+/* Flipkart-like Horizontal Swipe Product Gallery */
 .product-page-wrap {
   width: 100%;
+  overflow-x: hidden;
 }
 
 .swipe-carousel {
   display: flex;
+  flex-direction: row;
   overflow-x: auto;
+  overflow-y: hidden;
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
   scrollbar-width: none;
   width: 100%;
-  background: rgba(255, 255, 255, 0.03);
+  max-height: 360px;
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .swipe-carousel::-webkit-scrollbar {
@@ -506,44 +510,48 @@ textarea {
 
 .swipe-slide {
   flex: 0 0 100%;
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  max-height: 440px;
+  min-width: 100%;
+  max-width: 100%;
+  height: 360px;
   scroll-snap-align: start;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 
 .swipe-slide img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
 }
 
 .carousel-dots {
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: 7px;
-  padding: 10px 0 4px;
+  padding: 10px 0 6px;
 }
 
 .carousel-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.25);
   transition: all 0.2s ease;
 }
 
 .carousel-dot.active {
-  width: 20px;
+  width: 18px;
   background: var(--accent);
 }
 
 .product-info-body {
-  padding: 16px;
+  padding: 14px 16px 24px;
 }
 
-/* Sticky Bottom Buy Bar (Flipkart Style) */
 .sticky-buy-bar {
   position: fixed;
   left: 0;
@@ -554,7 +562,7 @@ textarea {
   align-items: center;
   gap: 10px;
   padding: 10px 14px;
-  background: rgba(10, 14, 25, 0.92);
+  background: rgba(10, 14, 25, 0.94);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   border-top: 1px solid var(--glass-border);
