@@ -19,18 +19,13 @@
         <div id="brandTitle" class="brand js-store-name">Sameer Store</div>
       </div>
     </div>
-    <div class="topbar-right">
-      <button id="themeToggleBtn" class="btn btn-sm btn-white" onclick="toggleThemeMode()">Light</button>
-      <button id="exitAdminBtn" class="btn btn-sm btn-white" style="display: none;" onclick="logoutAdmin()">Exit Admin</button>
-    </div>
+    <button id="exitAdminBtn" class="btn btn-sm btn-white" style="display: none;" onclick="logoutAdmin()">Exit Admin</button>
   </header>
 
   <div id="drawerBackdrop" class="drawer-backdrop"></div>
   <nav id="sideDrawer" class="side-drawer">
     <div class="drawer-title js-store-name">Menu</div>
     <a href="index.html" class="nav-link active">Catalog</a>
-    <div class="drawer-section-label">Categories</div>
-    <div id="drawerCategoryList" class="drawer-cat-list"></div>
     <a href="about.html" class="nav-link">About Us</a>
     <a href="contact.html" class="nav-link">Contact Us</a>
   </nav>
@@ -87,7 +82,7 @@
         </div>
 
         <div class="form-group">
-          <label for="prodImages">Photos (Up to 4 photos, duplicate blocked)</label>
+          <label for="prodImages">Photos (Up to 4 photos)</label>
           <input id="prodImages" type="file" accept="image/*" multiple onchange="handleImagePreview(event)" />
           <div id="previewStrip" class="preview-strip"></div>
         </div>
@@ -116,7 +111,7 @@
         <div id="categoryChips" class="chip-list"></div>
       </div>
 
-      <!-- Tab 3: Full Customization -->
+      <!-- Tab 3: Full Customization (Logo, Auto Banner 4-5 Photos, Layout, Stock Display) -->
       <div id="tabCustomize" class="admin-section">
         <div class="form-group">
           <label for="logoFileInput">Top Bar Company Logo</label>
@@ -136,26 +131,8 @@
             <input id="custBannerSpeed" type="number" min="2" max="15" value="3" />
           </div>
           <div>
-            <label for="custBannerAnim">Banner Animation Style</label>
-            <select id="custBannerAnim">
-              <option value="smooth-slide">Smooth Slide</option>
-              <option value="soft-glide">Soft Glide</option>
-              <option value="gentle-fade">Gentle Fade</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="custom-grid-2 form-group">
-          <div>
             <label for="custCardRadius">Card Corner Radius (px)</label>
             <input id="custCardRadius" type="number" min="4" max="28" value="16" />
-          </div>
-          <div>
-            <label for="custThemeMode">Default Theme Mode</label>
-            <select id="custThemeMode">
-              <option value="dark">Dark Theme</option>
-              <option value="light">Light Theme</option>
-            </select>
           </div>
         </div>
 
@@ -244,9 +221,9 @@
       </div>
     </section>
 
-    <!-- Touch-Swipeable + Smooth-Animated Hero Banner -->
+    <!-- Auto-Changing Hero Banner -->
     <div id="heroBannerWrap" class="hero-banner-wrap">
-      <div id="heroBannerTrack" class="hero-banner-track"></div>
+      <img id="heroBannerImg" class="hero-banner-img" alt="Banner" />
       <div id="heroDots" class="hero-dots"></div>
     </div>
 
