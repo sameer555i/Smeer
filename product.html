@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Product Details</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-left">
+      <button id="menuBtn" class="hamburger-btn" aria-label="Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <div class="brand js-store-name">Store</div>
+    </div>
+    <a href="index.html" class="btn btn-sm">Catalog</a>
+  </header>
+
+  <div id="drawerBackdrop" class="drawer-backdrop"></div>
+  <nav id="sideDrawer" class="side-drawer">
+    <div class="drawer-title js-store-name">Menu</div>
+    <a href="index.html" class="nav-link">Catalog</a>
+    <a href="about.html" class="nav-link">About Us</a>
+    <a href="contact.html" class="nav-link">Contact Us</a>
+  </nav>
+
+  <main class="container">
+    <div id="productDetailBox" class="glass-box">
+      <div class="empty-state">Loading product details...</div>
+    </div>
+
+    <section id="suggestedSection" style="display: none; margin-top: 28px;">
+      <h2 style="font-size: 1.1rem; margin-bottom: 14px;">Suggested Products</h2>
+      <div id="suggestedGrid" class="grid"></div>
+    </section>
+  </main>
+
+  <div id="toast" class="status-toast"></div>
+
+  <script src="config.js"></script>
+  <script src="api.js"></script>
+  <script src="product.js"></script>
+</body>
+</html>
