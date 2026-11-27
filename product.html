@@ -27,17 +27,18 @@
     <a href="contact.html" class="nav-link">Contact Us</a>
   </nav>
 
-  <main class="container">
-    <div id="productDetailBox" class="glass-box">
+  <main class="container-full">
+    <div id="productDetailBox" class="product-page-wrap">
       <div class="empty-state">Loading product details...</div>
     </div>
 
-    <section id="suggestedSection" style="display: none; margin-top: 28px;">
-      <h2 style="font-size: 1.1rem; margin-bottom: 14px;">Suggested Products</h2>
+    <section id="suggestedSection" style="display: none; padding: 14px 12px 24px;">
+      <h2 style="font-size: 1.02rem; margin-bottom: 12px;">Suggested Products</h2>
       <div id="suggestedGrid" class="grid"></div>
     </section>
   </main>
 
+  <div id="stickyBuyBar" class="sticky-buy-bar" style="display: none;"></div>
   <div id="toast" class="status-toast"></div>
 
   <script src="config.js"></script>
