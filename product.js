@@ -36,8 +36,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 function renderProductDetail(product, settings) {
   const detailBox = document.getElementById("productDetailBox");
+  const stickyBar = document.getElementById("stickyBuyBar");
   const imgs = product.images && product.images.length ? product.images : [];
-  const mainImg = imgs[0] || "";
 
   const waNumber = String(settings.whatsapp_number || "917676729300").replace(/\D/g, "");
   const messageText =
@@ -49,42 +49,48 @@ function renderProductDetail(product, settings) {
 
   const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(messageText)}`;
 
-  const thumbsHtml = imgs.length > 1
-    ? `<div class="thumb-row" id="thumbRow">` +
-      imgs.map((url, i) => `<img src="${url}" class="${i === 0 ? "active" : ""}" onclick="changeMainPhoto('${url}', this)" alt="Thumb ${i + 1}" />`).join("") +
-      `</div>`
-    : "";
+  const carouselHtml = imgs.length
+    ? `
+      <div id="swipeCarousel" class="swipe-carousel">
+        ${imgs.map((url, i) => `
+          <div class="swipe-slide">
+            <img src="${url}" alt="${escapeHtml(product.title)} ${i + 1}" />
+          </div>
+        `).join("")}
+      </div>
+      ${imgs.length > 1 ? `
+        <div id="carouselDots" class="carousel-dots">
+          ${imgs.map((_, i) => `<span class="carousel-dot ${i === 0 ? "active" : ""}"></span>`).join("")}
+        </div>
+      ` : ""}
+    `
+    : `<div class="empty-state">No Image</div>`;
 
   detailBox.innerHTML = `
-    <div class="detail-layout">
-      <div>
-        <div class="main-photo-box">
-          ${mainImg ? `<img id="mainProductImg" src="${mainImg}" alt="${escapeHtml(product.title)}" />` : `<div class="empty-state">No Image</div>`}
-        </div>
-        ${thumbsHtml}
+    ${carouselHtml}
+    <div class="product-info-body">
+      <div style="margin-bottom: 8px;">
+        <span class="chip" style="margin-top: 0;">${escapeHtml(product.category || "General")}</span>
       </div>
-
-      <div style="display: flex; flex-direction: column; gap: 14px;">
-        <div>
-          <span class="chip" style="margin-top: 0;">${escapeHtml(product.category || "General")}</span>
-        </div>
-        <h1 style="font-size: 1.45rem; line-height: 1.3;">${escapeHtml(product.title)}</h1>
-        <p style="color: var(--text-muted); line-height: 1.65; white-space: pre-line;">${escapeHtml(product.description)}</p>
-
-        <div style="margin-top: 10px; display: flex; gap: 12px; flex-wrap: wrap;">
-          <a href="${waUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-whatsapp">Buy on WhatsApp</a>
-          <a href="index.html" class="btn">All Products</a>
-        </div>
-      </div>
+      <h1 style="font-size: 1.25rem; line-height: 1.35; margin-bottom: 10px;">${escapeHtml(product.title)}</h1>
+      <p style="color: var(--text-muted); font-size: 0.94rem; line-height: 1.6; white-space: pre-line;">${escapeHtml(product.description)}</p>
     </div>
   `;
-}
 
-function changeMainPhoto(url, thumbEl) {
-  const mainImg = document.getElementById("mainProductImg");
-  if (mainImg) mainImg.src = url;
-  document.querySelectorAll("#thumbRow img").forEach((img) => img.classList.remove("active"));
-  if (thumbEl) thumbEl.classList.add("active");
+  stickyBar.style.display = "flex";
+  stickyBar.innerHTML = `
+    <a href="index.html" class="btn">Catalog</a>
+    <a href="${waUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-whatsapp">Buy on WhatsApp</a>
+  `;
+
+  const carousel = document.getElementById("swipeCarousel");
+  const dots = document.querySelectorAll("#carouselDots .carousel-dot");
+  if (carousel && dots.length > 1) {
+    carousel.addEventListener("scroll", () => {
+      const idx = Math.round(carousel.scrollLeft / carousel.clientWidth);
+      dots.forEach((dot, i) => dot.classList.toggle("active", i === idx));
+    }, { passive: true });
+  }
 }
 
 function renderSuggestedProducts(currentProduct, allProducts) {
@@ -114,7 +120,7 @@ function renderSuggestedProducts(currentProduct, allProducts) {
           <div class="card-title" onclick="location.href='${url}'">${escapeHtml(item.title)}</div>
           <div class="card-desc">${escapeHtml(item.description)}</div>
           <div class="card-footer">
-            <a href="${url}" class="btn btn-sm btn-primary">View Product</a>
+            <a href="${url}" class="btn btn-sm btn-primary">View</a>
           </div>
         </div>
       </article>
