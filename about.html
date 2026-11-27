@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About Us</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-left">
+      <button id="menuBtn" class="hamburger-btn" aria-label="Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <div class="brand js-store-name">Store</div>
+    </div>
+    <a href="index.html" class="btn btn-sm">Catalog</a>
+  </header>
+
+  <div id="drawerBackdrop" class="drawer-backdrop"></div>
+  <nav id="sideDrawer" class="side-drawer">
+    <div class="drawer-title js-store-name">Menu</div>
+    <a href="index.html" class="nav-link">Catalog</a>
+    <a href="about.html" class="nav-link active">About Us</a>
+    <a href="contact.html" class="nav-link">Contact Us</a>
+  </nav>
+
+  <main class="container">
+    <section class="glass-box">
+      <h1 style="font-size: 1.35rem; margin-bottom: 14px;">About Us</h1>
+      <p id="aboutContent" style="color: var(--text-muted); line-height: 1.7; white-space: pre-line;">Loading...</p>
+    </section>
+  </main>
+
+  <div id="toast" class="status-toast"></div>
+
+  <script src="config.js"></script>
+  <script src="api.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      try {
+        const data = await StoreAPI.fetchAll(false);
+        if (data.status === "success") {
+          const s = data.settings || {};
+          document.title = `About Us - ${s.store_name || "Store"}`;
+          setupNavigation(s.store_name);
+          document.getElementById("aboutContent").textContent = s.about_us || "About Us जानकारी जल्द ही अपडेट होगी।";
+        }
+      } catch (e) {
+        document.getElementById("aboutContent").textContent = "जानकारी लोड नहीं हो सकी।";
+      }
+    });
+  </script>
+</body>
+</html>
